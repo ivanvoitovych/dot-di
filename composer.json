@@ -1,0 +1,23 @@
+{
+    "name": "ivanvoitovych/dot-di",
+    "description": "DI and service provider for PHP. Inspired by .NET DI.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "DotDi\\": "src/DotDi/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "Tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ivan Voitovych",
+            "email": "col606v@gmail.com"
+        }
+    ],
+    "require": {}
+}
