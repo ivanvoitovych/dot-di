@@ -57,32 +57,47 @@ class ServiceProvider implements IServiceProvider, IDisposable
 
     /**
      * 
-     * @param string $typeOrInterface 
+     * @param string $typeOrInterface
+     * @param callable|string|NULL $type 
      * @return void 
      */
-    public function addTransient(string $typeOrInterface, string $type = null)
+    public function addTransient(string $typeOrInterface, $type = null)
     {
         $this->_registry[$typeOrInterface][] = [$type ?? $typeOrInterface, self::LIFETIME_TRANSIENT];
     }
 
     /**
      * 
-     * @param string $typeOrInterface 
+     * @param string $typeOrInterface
+     * @param callable|string|NULL $type 
      * @return void 
      */
-    public function addScoped(string $typeOrInterface, string $type = null)
+    public function addScoped(string $typeOrInterface, $type = null)
     {
         $this->_registry[$typeOrInterface][] = [$type ?? $typeOrInterface, self::LIFETIME_SCOPED];
     }
 
     /**
      * 
-     * @param string $typeOrInterface 
+     * @param string $typeOrInterface
+     * @param callable|string|NULL $type 
      * @return void 
      */
-    public function addSingleton(string $typeOrInterface, string $type = null)
+    public function addSingleton(string $typeOrInterface, $type = null)
     {
         $this->_registry[$typeOrInterface][] = [$type ?? $typeOrInterface, self::LIFETIME_SINGLETON];
+    }
+
+    /**
+     * 
+     * @param string $typeOrInterface 
+     * @param string $lifetimeScope 
+     * @param callable $factory 
+     * @return mixed 
+     */
+    function addFactory(string $typeOrInterface, string $lifetimeScope, callable $factory)
+    {
+        $this->_registry[$typeOrInterface][] = [$factory, $lifetimeScope];
     }
 
     public function createScope(): Container
@@ -115,7 +130,6 @@ class ServiceProvider implements IServiceProvider, IDisposable
      */
     public function get(string $type, ?array $params = null)
     {
-        // echo "Resolving $type $params \n";
         if (isset($this->_registry[$type])) {
             $count = count($this->_registry[$type]);
             $instanceTypeTuple = $this->_registry[$type][$count - 1]; // last one registered
@@ -128,7 +142,7 @@ class ServiceProvider implements IServiceProvider, IDisposable
                 }
                 return $transientInstance;
             }
-            $instanceKey = $instanceType . ($params ? json_encode($params) : '');
+            $instanceKey = (is_callable($instanceType) ? '_factory_' :  $instanceType) . ($params ? json_encode($params) : '');
             if ($lifetimeScope === self::LIFETIME_SINGLETON) {
                 // use singleton container
                 if (!isset($this->_singletonScope->_instances[$instanceKey])) {
@@ -137,7 +151,6 @@ class ServiceProvider implements IServiceProvider, IDisposable
                 }
                 return $this->_singletonScope->_instances[$instanceKey];
             }
-            // echo "Searching for $instanceKey \n";
             if (!isset($this->_instances[$instanceKey])) {
                 $this->_instances[$instanceKey] = $this->resolve($instanceType, $params);
             }
@@ -146,8 +159,12 @@ class ServiceProvider implements IServiceProvider, IDisposable
         return null;
     }
 
-    private function resolve(string $type, ?array $params = null)
+    private function resolve($type, ?array $params = null)
     {
+        if (is_callable($type)) {
+            $dependencies = ServiceProviderHelper::getDependencies($type, $this, $params);
+            return $type(...$dependencies);
+        }
         $dependencies = ServiceProviderHelper::getDependencies($type, $this, $params);
         if (!empty($dependencies)) {
             return new $type(...$dependencies);
