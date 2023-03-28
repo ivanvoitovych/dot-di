@@ -7,6 +7,7 @@ use Exception;
 use ReflectionClass;
 use ReflectionFunction;
 use ReflectionNamedType;
+use ReflectionParameter;
 
 class ServiceProviderHelper
 {
@@ -83,6 +84,7 @@ class ServiceProviderHelper
         $dependencies = [];
         if (!empty($arguments)) {
             foreach ($arguments as $argument) {
+                /** @var ReflectionParameter $argument */
                 $argumentName = $argument->name;
                 if ($argument->hasType()) {
                     /** @var ReflectionNamedType $namedType */
@@ -99,7 +101,11 @@ class ServiceProviderHelper
                             if ($params !== null && key_exists($argumentName, $params)) {
                                 $argumentValue = $params[$argumentName];
                             } else if (!$namedType->allowsNull()) {
-                                throw new Exception("Can't resolve an argument $argumentName; $namedType");
+                                if ($argument->isDefaultValueAvailable()) {
+                                    $argumentValue = $argument->getDefaultValue();
+                                } else {
+                                    throw new Exception("Can't resolve an argument $argumentName; $namedType");
+                                }
                             }
                         }
                         $dependencies[] = $argumentValue;
