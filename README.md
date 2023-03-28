@@ -4,6 +4,8 @@ Dependency Injection and Service provider for PHP. Inspired by .NET DI.
 Usage
 --------
 
+`composer require ivanvoitovych/dot-di`
+
 ```php
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -18,6 +20,14 @@ $services->addTransient(BarService::class);
 // register scoped using interface as a type
 $services->addScoped(ITaxService::class, TaxService::class);
 $services->addScoped(GenericService::class);
+
+// factory
+$serviceProvider->addSingleton(
+    IRedisConnector::class,
+    function (Config $config) { // params are autoinjected
+        return new RedisConnector($config->values['redisDbIndex']);
+    }
+);
 
 // to auto register everything in the folder (as Scoped, for ex.: controllers)
 ServiceProviderHelper::discover($services, ['path/to/your/files']);
