@@ -20,6 +20,7 @@ $services->addTransient(BarService::class);
 // register scoped using interface as a type
 $services->addScoped(ITaxService::class, TaxService::class);
 $services->addScoped(GenericService::class);
+$services->addScoped(UserService::class);
 
 // factory
 $serviceProvider->addSingleton(
@@ -61,6 +62,15 @@ class TestService
         public GenericService $usersRepository
     ) {
     }
+}
+
+// extending generic class
+#[Inject([
+    'type' => 'UserEntity',
+    'dbMap' => 'UserEntityDbMap'
+])]
+class UserService extends GenericService
+{
 }
 ```
 

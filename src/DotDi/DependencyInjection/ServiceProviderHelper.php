@@ -71,6 +71,11 @@ class ServiceProviderHelper
         if (is_string($classOrCallable)) // middleware class
         {
             $reflectionClass = new ReflectionClass($classOrCallable);
+            $classAttributes = $reflectionClass->getAttributes(Inject::class);
+            if (count($classAttributes) > 0) {
+                $injectAttribute = $classAttributes[0];
+                $params = array_merge($params ?? [], $injectAttribute->getArguments()[0]);
+            }
             $constructor = $reflectionClass->getConstructor();
             if ($constructor !== null) {
                 $arguments = $constructor->getParameters();
