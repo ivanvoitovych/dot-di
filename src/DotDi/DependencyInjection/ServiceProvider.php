@@ -122,13 +122,14 @@ class ServiceProvider implements IServiceProvider, IDisposable
     }
 
     /**
-     * 
-     * @param class-string $type 
-     * @param null|array $params 
-     * @return {$type}|null 
-     * @throws Exception 
+     *
+     * @template T
+     * @param class-string<T> $type
+     * @param null|array $params
+     * @return T|null
+     * @throws Exception
      */
-    public function get(string $type, ?array $params = null)
+    public function get(string $type, ?array $params = null): ?object
     {
         if (isset($this->_registry[$type])) {
             $count = count($this->_registry[$type]);
