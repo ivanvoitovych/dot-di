@@ -5,7 +5,7 @@ namespace DotDi\DependencyInjection;
 use DotDi\Interfaces\IDisposable;
 use Exception;
 
-class ServiceProvider implements IServiceProvider, IDisposable
+class ServiceProvider implements IServiceProvider
 {
     const LIFETIME_TRANSIENT = 'TRANSIENT';
     const LIFETIME_SCOPED = 'SCOPED';
