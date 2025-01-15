@@ -55,4 +55,14 @@ interface IServiceProvider extends IDisposable
      * @throws Exception
      */
     public function get(string $type, ?array $params = null): ?object;
+
+    /**
+     *
+     * @template T
+     * @param class-string<T> $type
+     * @param null|array $params
+     * @return T[]
+     * @throws Exception
+     */
+    public function getAll(string $type, ?array $params = null): array;
 }

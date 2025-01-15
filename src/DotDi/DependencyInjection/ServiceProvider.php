@@ -160,6 +160,41 @@ class ServiceProvider implements IServiceProvider
         return null;
     }
 
+    public function getAll(string $type, ?array $params = null): array
+    {
+        $items = [];
+        if (isset($this->_registry[$type])) {
+            foreach ($this->_registry[$type] as $instanceTypeTuple) {
+                $instanceType = $instanceTypeTuple[0];
+                $lifetimeScope = $instanceTypeTuple[1];
+                if ($lifetimeScope === self::LIFETIME_TRANSIENT) {
+                    $transientInstance = $this->resolve($instanceType, $params);
+                    if ($transientInstance instanceof IDisposable) {
+                        $this->toDispose[] = $transientInstance;
+                    }
+                    $items[] = $transientInstance;
+                    continue;
+                }
+                $instanceKey = (is_callable($instanceType) ? '_factory_' :  $instanceType) . ($params ? json_encode($params) : '');
+                if ($lifetimeScope === self::LIFETIME_SINGLETON) {
+                    // use singleton container
+                    if (!isset($this->_singletonScope->_instances[$instanceKey])) {
+                        $this->_singletonScope->_instances[$instanceKey]
+                            = $this->resolve($instanceType, $params);
+                    }
+                    $items[] = $this->_singletonScope->_instances[$instanceKey];
+                    continue;
+                }
+                if (!isset($this->_instances[$instanceKey])) {
+                    $this->_instances[$instanceKey] = $this->resolve($instanceType, $params);
+                }
+                $items[] = $this->_instances[$instanceKey];
+                continue;
+            }
+        }
+        return $items;
+    }
+
     private function resolve($type, ?array $params = null)
     {
         if (is_callable($type)) {
